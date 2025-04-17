@@ -5,6 +5,7 @@ import "os"
 type Config struct {
 	Server   ServerConfig
 	Database DatabaseConfig
+	JWT      JWTConfig
 }
 
 type ServerConfig struct {
@@ -20,6 +21,10 @@ type DatabaseConfig struct {
 	SSLMode  string
 }
 
+type JWTConfig struct {
+	JWTSecret string
+}
+
 func NewConfig() *Config {
 	return &Config{
 		Server: ServerConfig{
@@ -32,6 +37,9 @@ func NewConfig() *Config {
 			Password: os.Getenv("DB_PASSWORD"),
 			DBName:   os.Getenv("DB_NAME"),
 			SSLMode:  os.Getenv("DB_SSLMODE"),
+		},
+		JWT: JWTConfig{
+			JWTSecret: os.Getenv("JWT_SECRET"),
 		},
 	}
 }

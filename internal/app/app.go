@@ -3,21 +3,27 @@ package app
 import (
 	"fmt"
 	"log"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kirillidk/pvz-service/internal/config"
+	"github.com/kirillidk/pvz-service/internal/handler"
+	"github.com/kirillidk/pvz-service/internal/middleware"
+	"github.com/kirillidk/pvz-service/internal/model"
 	"github.com/kirillidk/pvz-service/pkg/database"
 )
 
 type App struct {
-	config *config.Config
-	router *gin.Engine
+	config  *config.Config
+	router  *gin.Engine
+	handler *handler.Handler
 }
 
 func NewApp(cfg *config.Config) *App {
 	return &App{
-		config: cfg,
-		router: gin.Default(),
+		config:  cfg,
+		router:  gin.Default(),
+		handler: handler.NewHandler(cfg),
 	}
 }
 
@@ -36,7 +42,22 @@ func (a *App) Run() error {
 }
 
 func (a *App) setupRoutes() {
+
+	a.router.POST("/dummyLogin", a.handler.AuthHandler.DummyLogin)
+
 	a.router.GET("/hello", func(c *gin.Context) {
-		c.String(200, "lol")
+		c.String(http.StatusOK, "lol")
+	})
+
+	authenticated := a.router.Group("/", middleware.AuthMiddleware(a.config.JWT.JWTSecret))
+
+	employees := authenticated.Group("/", middleware.RoleMiddleware(model.EmployeeRole))
+	employees.GET("/emp", func(c *gin.Context) {
+		c.String(http.StatusOK, "emp")
+	})
+
+	moderators := authenticated.Group("/", middleware.RoleMiddleware(model.ModeratorRole))
+	moderators.GET("/mod", func(c *gin.Context) {
+		c.String(http.StatusOK, "mod")
 	})
 }
