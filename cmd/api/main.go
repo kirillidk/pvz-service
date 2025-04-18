@@ -9,9 +9,13 @@ import (
 
 func main() {
 	cfg := config.NewConfig()
-	app := app.NewApp(cfg)
 
-	err := app.Run()
+	app, err := app.NewApp(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = app.Run()
 	if err != nil {
 		log.Fatal(err)
 	}

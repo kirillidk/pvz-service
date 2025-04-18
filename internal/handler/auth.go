@@ -10,12 +10,14 @@ import (
 )
 
 type AuthHandler struct {
-	jwtSecret string
+	authService *auth.AuthService
+	jwtSecret   string
 }
 
-func NewAuthHandler(jwtSecret string) *AuthHandler {
+func NewAuthHandler(authService *auth.AuthService, jwtSecret string) *AuthHandler {
 	return &AuthHandler{
-		jwtSecret: jwtSecret,
+		authService: authService,
+		jwtSecret:   jwtSecret,
 	}
 }
 
@@ -33,6 +35,38 @@ func (authHandler *AuthHandler) DummyLogin(c *gin.Context) {
 	}
 
 	c.Header("Authorization", "Bearer "+token)
+
+	c.JSON(http.StatusOK, model.Token{Value: token})
+}
+
+func (h *AuthHandler) Register(c *gin.Context) {
+	var req dto.RegisterRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, model.Error{Message: "Invalid request data"})
+		return
+	}
+
+	user, err := h.authService.Register(req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.Error{Message: err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, user)
+}
+
+func (h *AuthHandler) Login(c *gin.Context) {
+	var req dto.LoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, model.Error{Message: "Invalid request data"})
+		return
+	}
+
+	token, err := h.authService.Login(req)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, model.Error{Message: err.Error()})
+		return
+	}
 
 	c.JSON(http.StatusOK, model.Token{Value: token})
 }

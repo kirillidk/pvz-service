@@ -1,6 +1,7 @@
 package app
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,29 +11,42 @@ import (
 	"github.com/kirillidk/pvz-service/internal/handler"
 	"github.com/kirillidk/pvz-service/internal/middleware"
 	"github.com/kirillidk/pvz-service/internal/model"
+	"github.com/kirillidk/pvz-service/internal/repository"
+	"github.com/kirillidk/pvz-service/internal/service"
 	"github.com/kirillidk/pvz-service/pkg/database"
 )
 
 type App struct {
-	config  *config.Config
-	router  *gin.Engine
-	handler *handler.Handler
+	config     *config.Config
+	router     *gin.Engine
+	database   *sql.DB
+	repository *repository.Repository
+	service    *service.Service
+	handler    *handler.Handler
 }
 
-func NewApp(cfg *config.Config) *App {
-	return &App{
-		config:  cfg,
-		router:  gin.Default(),
-		handler: handler.NewHandler(cfg),
+func NewApp(cfg *config.Config) (*App, error) {
+	db, err := database.NewPostgresDB(&cfg.Database)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize database: %w", err)
 	}
+
+	rtr := gin.Default()
+	repo := repository.NewRepository(db)
+	serv := service.NewService(repo, cfg.JWT.JWTSecret)
+	handl := handler.NewHandler(serv, cfg)
+
+	return &App{
+		config:     cfg,
+		database:   db,
+		router:     rtr,
+		repository: repo,
+		service:    serv,
+		handler:    handl,
+	}, nil
 }
 
 func (a *App) Run() error {
-	_, err := database.NewPostgresDB(&a.config.Database)
-	if err != nil {
-		return fmt.Errorf("failed to initialize database: %w", err)
-	}
-
 	a.setupRoutes()
 
 	serverAddr := fmt.Sprintf(":%s", a.config.Server.Port)
@@ -44,6 +58,8 @@ func (a *App) Run() error {
 func (a *App) setupRoutes() {
 
 	a.router.POST("/dummyLogin", a.handler.AuthHandler.DummyLogin)
+	a.router.POST("/register", a.handler.AuthHandler.Register)
+	a.router.POST("/login", a.handler.AuthHandler.Login)
 
 	a.router.GET("/hello", func(c *gin.Context) {
 		c.String(http.StatusOK, "lol")
