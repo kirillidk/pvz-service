@@ -59,7 +59,7 @@ func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (*mo
 
 	query, args, err := r.psql.
 		Select("id", "email", "password_hash", "role").
-		From("users").
+		From(tableName).
 		Where(sq.Eq{"email": email}).
 		ToSql()
 

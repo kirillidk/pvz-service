@@ -7,10 +7,12 @@ import (
 
 type Handler struct {
 	AuthHandler *AuthHandler
+	PVZHandler  *PVZHandler
 }
 
 func NewHandler(serv *service.Service, cfg *config.Config) *Handler {
 	return &Handler{
 		AuthHandler: NewAuthHandler(serv.AuthService, cfg.JWT.JWTSecret),
+		PVZHandler:  NewPVZHandler(serv.PVZService),
 	}
 }

@@ -35,7 +35,6 @@ func (authHandler *AuthHandler) DummyLogin(c *gin.Context) {
 	}
 
 	c.Header("Authorization", "Bearer "+token)
-
 	c.JSON(http.StatusOK, model.Token{Value: token})
 }
 
@@ -68,5 +67,6 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
+	c.Header("Authorization", "Bearer "+token)
 	c.JSON(http.StatusOK, model.Token{Value: token})
 }
