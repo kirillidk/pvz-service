@@ -6,13 +6,15 @@ import (
 )
 
 type Service struct {
-	AuthService *auth.AuthService
-	PVZService  *PVZService
+	AuthService      *auth.AuthService
+	PVZService       *PVZService
+	ReceptionService *ReceptionService
 }
 
 func NewService(repository *repository.Repository, jwtSecret string) *Service {
 	return &Service{
-		AuthService: auth.NewAuthService(repository.UserRepository, jwtSecret),
-		PVZService:  NewPVZService(repository.PVZRepository),
+		AuthService:      auth.NewAuthService(repository.UserRepository, jwtSecret),
+		PVZService:       NewPVZService(repository.PVZRepository),
+		ReceptionService: NewReceptionService(repository.ReceptionRepository),
 	}
 }

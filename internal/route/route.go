@@ -8,4 +8,5 @@ import (
 func SetupRoutes(router *gin.Engine, handler *handler.Handler, jwtSecret string) {
 	SetupAuthRoutes(router, handler)
 	SetupPVZRoutes(router, handler, jwtSecret)
+	SetupReceptionRoutes(router, handler, jwtSecret)
 }

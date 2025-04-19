@@ -6,13 +6,15 @@ import (
 )
 
 type Handler struct {
-	AuthHandler *AuthHandler
-	PVZHandler  *PVZHandler
+	AuthHandler      *AuthHandler
+	PVZHandler       *PVZHandler
+	ReceptionHandler *ReceptionHandler
 }
 
 func NewHandler(serv *service.Service, cfg *config.Config) *Handler {
 	return &Handler{
-		AuthHandler: NewAuthHandler(serv.AuthService, cfg.JWT.JWTSecret),
-		PVZHandler:  NewPVZHandler(serv.PVZService),
+		AuthHandler:      NewAuthHandler(serv.AuthService, cfg.JWT.JWTSecret),
+		PVZHandler:       NewPVZHandler(serv.PVZService),
+		ReceptionHandler: NewReceptionHandler(serv.ReceptionService),
 	}
 }
