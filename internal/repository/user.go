@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 
@@ -26,7 +27,7 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 	}
 }
 
-func (r *UserRepository) CreateUser(registerReq dto.RegisterRequest) (*model.User, error) {
+func (r *UserRepository) CreateUser(ctx context.Context, registerReq dto.RegisterRequest) (*model.User, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(registerReq.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
@@ -44,7 +45,7 @@ func (r *UserRepository) CreateUser(registerReq dto.RegisterRequest) (*model.Use
 	}
 
 	var user model.User
-	err = r.db.QueryRow(query, args...).Scan(&user.ID, &user.Email, &user.Role)
+	err = r.db.QueryRowContext(ctx, query, args...).Scan(&user.ID, &user.Email, &user.Role)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
@@ -52,7 +53,7 @@ func (r *UserRepository) CreateUser(registerReq dto.RegisterRequest) (*model.Use
 	return &user, nil
 }
 
-func (r *UserRepository) FindUserByEmail(email string) (*model.User, string, error) {
+func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (*model.User, string, error) {
 	var user model.User
 	var passwordHash string
 
@@ -66,7 +67,7 @@ func (r *UserRepository) FindUserByEmail(email string) (*model.User, string, err
 		return nil, "", fmt.Errorf("failed to build sql query: %w", err)
 	}
 
-	err = r.db.QueryRow(query, args...).Scan(&user.ID, &user.Email, &passwordHash, &user.Role)
+	err = r.db.QueryRowContext(ctx, query, args...).Scan(&user.ID, &user.Email, &passwordHash, &user.Role)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, "", fmt.Errorf("user not found")
@@ -77,7 +78,7 @@ func (r *UserRepository) FindUserByEmail(email string) (*model.User, string, err
 	return &user, passwordHash, nil
 }
 
-func (r *UserRepository) UserExists(email string) (bool, error) {
+func (r *UserRepository) UserExists(ctx context.Context, email string) (bool, error) {
 	var exists bool
 
 	query, _, err := r.psql.
@@ -88,7 +89,7 @@ func (r *UserRepository) UserExists(email string) (bool, error) {
 		return false, fmt.Errorf("failed to build sql query: %w", err)
 	}
 
-	err = r.db.QueryRow(query, email).Scan(&exists)
+	err = r.db.QueryRowContext(ctx, query, email).Scan(&exists)
 	if err != nil {
 		return false, fmt.Errorf("failed to check if user exists: %w", err)
 	}

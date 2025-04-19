@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -22,8 +23,8 @@ func NewAuthService(userRepo *repository.UserRepository, jwtSecret string) *Auth
 	}
 }
 
-func (s *AuthService) Register(registerReq dto.RegisterRequest) (*model.User, error) {
-	exists, err := s.userRepository.UserExists(registerReq.Email)
+func (s *AuthService) Register(ctx context.Context, registerReq dto.RegisterRequest) (*model.User, error) {
+	exists, err := s.userRepository.UserExists(ctx, registerReq.Email)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if user exists: %w", err)
 	}
@@ -32,7 +33,7 @@ func (s *AuthService) Register(registerReq dto.RegisterRequest) (*model.User, er
 		return nil, errors.New("user with this email already exists")
 	}
 
-	user, err := s.userRepository.CreateUser(registerReq)
+	user, err := s.userRepository.CreateUser(ctx, registerReq)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
@@ -40,8 +41,8 @@ func (s *AuthService) Register(registerReq dto.RegisterRequest) (*model.User, er
 	return user, nil
 }
 
-func (s *AuthService) Login(loginReq dto.LoginRequest) (string, error) {
-	user, passwordHash, err := s.userRepository.FindUserByEmail(loginReq.Email)
+func (s *AuthService) Login(ctx context.Context, loginReq dto.LoginRequest) (string, error) {
+	user, passwordHash, err := s.userRepository.FindUserByEmail(ctx, loginReq.Email)
 	if err != nil {
 		return "", errors.New("invalid email or password")
 	}
