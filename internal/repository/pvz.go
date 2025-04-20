@@ -16,7 +16,7 @@ const (
 )
 
 type PVZRepositoryInterface interface {
-	CreatePVZ(ctx context.Context, pvzReq dto.PVZRequest) (*model.PVZ, error)
+	CreatePVZ(ctx context.Context, pvzReq dto.PVZCreateRequest) (*model.PVZ, error)
 }
 
 type PVZRepository struct {
@@ -31,7 +31,7 @@ func NewPVZRepository(db *sql.DB) *PVZRepository {
 	}
 }
 
-func (r *PVZRepository) CreatePVZ(ctx context.Context, pvzReq dto.PVZRequest) (*model.PVZ, error) {
+func (r *PVZRepository) CreatePVZ(ctx context.Context, pvzReq dto.PVZCreateRequest) (*model.PVZ, error) {
 	registrationDate := time.Now()
 
 	query, args, err := r.psql.

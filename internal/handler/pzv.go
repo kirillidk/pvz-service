@@ -20,7 +20,7 @@ func NewPVZHandler(pvzService *service.PVZService) *PVZHandler {
 }
 
 func (h *PVZHandler) CreatePVZ(c *gin.Context) {
-	var pvzReq dto.PVZRequest
+	var pvzReq dto.PVZCreateRequest
 	if err := c.ShouldBindJSON(&pvzReq); err != nil {
 		c.JSON(http.StatusBadRequest, model.Error{Message: "Invalid request data"})
 		return

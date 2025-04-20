@@ -13,10 +13,10 @@ import (
 )
 
 type MockPVZRepository struct {
-	CreatePVZFunc func(ctx context.Context, req dto.PVZRequest) (*model.PVZ, error)
+	CreatePVZFunc func(ctx context.Context, req dto.PVZCreateRequest) (*model.PVZ, error)
 }
 
-func (m *MockPVZRepository) CreatePVZ(ctx context.Context, req dto.PVZRequest) (*model.PVZ, error) {
+func (m *MockPVZRepository) CreatePVZ(ctx context.Context, req dto.PVZCreateRequest) (*model.PVZ, error) {
 	return m.CreatePVZFunc(ctx, req)
 }
 
@@ -26,14 +26,14 @@ func TestPVZService_CreatePVZ(t *testing.T) {
 	tests := []struct {
 		name          string
 		mockRepo      *MockPVZRepository
-		input         dto.PVZRequest
+		input         dto.PVZCreateRequest
 		expected      *model.PVZ
 		expectedError bool
 	}{
 		{
 			name: "Success",
 			mockRepo: &MockPVZRepository{
-				CreatePVZFunc: func(ctx context.Context, req dto.PVZRequest) (*model.PVZ, error) {
+				CreatePVZFunc: func(ctx context.Context, req dto.PVZCreateRequest) (*model.PVZ, error) {
 					return &model.PVZ{
 						ID:               "123e4567-e89b-12d3-a456-426614174000",
 						RegistrationDate: now,
@@ -41,7 +41,7 @@ func TestPVZService_CreatePVZ(t *testing.T) {
 					}, nil
 				},
 			},
-			input: dto.PVZRequest{
+			input: dto.PVZCreateRequest{
 				RegistrationDate: now,
 				City:             "Москва",
 			},
@@ -55,11 +55,11 @@ func TestPVZService_CreatePVZ(t *testing.T) {
 		{
 			name: "Repository Error",
 			mockRepo: &MockPVZRepository{
-				CreatePVZFunc: func(ctx context.Context, req dto.PVZRequest) (*model.PVZ, error) {
+				CreatePVZFunc: func(ctx context.Context, req dto.PVZCreateRequest) (*model.PVZ, error) {
 					return nil, errors.New("repository error")
 				},
 			},
-			input: dto.PVZRequest{
+			input: dto.PVZCreateRequest{
 				RegistrationDate: now,
 				City:             "Москва",
 			},
@@ -69,11 +69,11 @@ func TestPVZService_CreatePVZ(t *testing.T) {
 		{
 			name: "Invalid City",
 			mockRepo: &MockPVZRepository{
-				CreatePVZFunc: func(ctx context.Context, req dto.PVZRequest) (*model.PVZ, error) {
+				CreatePVZFunc: func(ctx context.Context, req dto.PVZCreateRequest) (*model.PVZ, error) {
 					return nil, errors.New("invalid city")
 				},
 			},
-			input: dto.PVZRequest{
+			input: dto.PVZCreateRequest{
 				RegistrationDate: now,
 				City:             "Новосибирск",
 			},

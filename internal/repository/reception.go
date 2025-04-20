@@ -17,7 +17,8 @@ const (
 
 type ReceptionRepositoryInterface interface {
 	CreateReception(ctx context.Context, receptionCreateReq dto.ReceptionCreateRequest) (*model.Reception, error)
-	HasOpenReception(ctx context.Context, receptionCreateReq dto.ReceptionCreateRequest) (bool, error)
+	HasOpenReception(ctx context.Context, pvzID string) (bool, error)
+	GetLastOpenReception(ctx context.Context, pvzID string) (*model.Reception, error)
 }
 
 type ReceptionRepository struct {
@@ -33,7 +34,7 @@ func NewReceptionRepository(db *sql.DB) *ReceptionRepository {
 }
 
 func (r *ReceptionRepository) CreateReception(ctx context.Context, receptionCreateReq dto.ReceptionCreateRequest) (*model.Reception, error) {
-	hasOpenReception, err := r.HasOpenReception(ctx, receptionCreateReq)
+	hasOpenReception, err := r.HasOpenReception(ctx, receptionCreateReq.PVZID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check open receptions: %w", err)
 	}
@@ -63,7 +64,7 @@ func (r *ReceptionRepository) CreateReception(ctx context.Context, receptionCrea
 	return &reception, nil
 }
 
-func (r *ReceptionRepository) HasOpenReception(ctx context.Context, receptionCreateReq dto.ReceptionCreateRequest) (bool, error) {
+func (r *ReceptionRepository) HasOpenReception(ctx context.Context, pvzID string) (bool, error) {
 	var exists bool
 
 	query, _, err := r.psql.
@@ -74,10 +75,35 @@ func (r *ReceptionRepository) HasOpenReception(ctx context.Context, receptionCre
 		return false, fmt.Errorf("failed to build sql query: %w", err)
 	}
 
-	err = r.db.QueryRowContext(ctx, query, receptionCreateReq.PVZID).Scan(&exists)
+	err = r.db.QueryRowContext(ctx, query, pvzID).Scan(&exists)
 	if err != nil {
 		return false, fmt.Errorf("failed to check if open reception exists: %w", err)
 	}
 
 	return exists, nil
+}
+
+func (r *ReceptionRepository) GetLastOpenReception(ctx context.Context, pvzID string) (*model.Reception, error) {
+	query, args, err := r.psql.
+		Select("id", "date_time", "pvz_id", "status").
+		From(receptionTableName).
+		Where(sq.Eq{"pvz_id": pvzID, "status": "in_progress"}).
+		OrderBy("date_time DESC").
+		Limit(1).
+		ToSql()
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to build sql query: %w", err)
+	}
+
+	var reception model.Reception
+	err = r.db.QueryRowContext(ctx, query, args...).Scan(&reception.ID, &reception.DateTime, &reception.PVZID, &reception.Status)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("no open reception found for this PVZ")
+		}
+		return nil, fmt.Errorf("failed to get open reception: %w", err)
+	}
+
+	return &reception, nil
 }

@@ -19,7 +19,7 @@ func NewPVZService(pvzRepo repository.PVZRepositoryInterface) *PVZService {
 	}
 }
 
-func (s *PVZService) CreatePVZ(ctx context.Context, pvzReq dto.PVZRequest) (*model.PVZ, error) {
+func (s *PVZService) CreatePVZ(ctx context.Context, pvzReq dto.PVZCreateRequest) (*model.PVZ, error) {
 	createdPVZ, err := s.pvzRepository.CreatePVZ(ctx, pvzReq)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create PVZ: %w", err)

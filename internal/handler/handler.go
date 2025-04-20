@@ -9,6 +9,7 @@ type Handler struct {
 	AuthHandler      *AuthHandler
 	PVZHandler       *PVZHandler
 	ReceptionHandler *ReceptionHandler
+	ProductHandler   *ProductHandler
 }
 
 func NewHandler(serv *service.Service, cfg *config.Config) *Handler {
@@ -16,5 +17,6 @@ func NewHandler(serv *service.Service, cfg *config.Config) *Handler {
 		AuthHandler:      NewAuthHandler(serv.AuthService, cfg.JWT.JWTSecret),
 		PVZHandler:       NewPVZHandler(serv.PVZService),
 		ReceptionHandler: NewReceptionHandler(serv.ReceptionService),
+		ProductHandler:   NewProductHandler(serv.ProductService),
 	}
 }
