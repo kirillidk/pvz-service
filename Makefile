@@ -7,9 +7,17 @@ migrate-up:
 migrate-down:
 	$(MIGRATE) down
 
+migrate-up-n:
+	$(MIGRATE) up $(n)
+
+migrate-down-n:
+	$(MIGRATE) down $(n)
+
 migrate-force:
 	$(MIGRATE) force
 
 migrate-version:
 	$(MIGRATE) version
 
+seed:
+	docker exec -i postgres psql -U postgres -d pvz_service < ./seeds/seed_test_data.sql
