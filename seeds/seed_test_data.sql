@@ -4,11 +4,11 @@ TRUNCATE pvz CASCADE;
 TRUNCATE users CASCADE;
 
 INSERT INTO users (id, email, password_hash, role) VALUES
-  ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'employee1@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'employee'),
-  ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', 'employee2@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'employee'),
-  ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13', 'employee3@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'employee'),
-  ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14', 'moderator1@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'moderator'),
-  ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a15', 'moderator2@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'moderator');
+  ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'employee1@example.com', '$2a$10$JQIPygpojfjEmm9l.TZ0G.l4r1EyrrCdJ4LfKuFtXFN2g3sUs8isK', 'employee'),
+  ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', 'employee2@example.com', '$2a$10$JQIPygpojfjEmm9l.TZ0G.l4r1EyrrCdJ4LfKuFtXFN2g3sUs8isK', 'employee'),
+  ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13', 'employee3@example.com', '$2a$10$JQIPygpojfjEmm9l.TZ0G.l4r1EyrrCdJ4LfKuFtXFN2g3sUs8isK', 'employee'),
+  ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14', 'moderator1@example.com', '$2a$10$JQIPygpojfjEmm9l.TZ0G.l4r1EyrrCdJ4LfKuFtXFN2g3sUs8isK', 'moderator'),
+  ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a15', 'moderator2@example.com', '$2a$10$JQIPygpojfjEmm9l.TZ0G.l4r1EyrrCdJ4LfKuFtXFN2g3sUs8isK', 'moderator');
 
 INSERT INTO pvz (id, registration_date, city) VALUES
   ('b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', '2023-01-01 10:00:00', 'Москва'),

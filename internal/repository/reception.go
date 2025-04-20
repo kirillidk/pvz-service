@@ -19,6 +19,7 @@ type ReceptionRepositoryInterface interface {
 	CreateReception(ctx context.Context, receptionCreateReq dto.ReceptionCreateRequest) (*model.Reception, error)
 	HasOpenReception(ctx context.Context, pvzID string) (bool, error)
 	GetLastOpenReception(ctx context.Context, pvzID string) (*model.Reception, error)
+	CloseReception(ctx context.Context, receptionID string) (*model.Reception, error)
 }
 
 type ReceptionRepository struct {
@@ -103,6 +104,30 @@ func (r *ReceptionRepository) GetLastOpenReception(ctx context.Context, pvzID st
 			return nil, fmt.Errorf("no open reception found for this PVZ")
 		}
 		return nil, fmt.Errorf("failed to get open reception: %w", err)
+	}
+
+	return &reception, nil
+}
+
+func (r *ReceptionRepository) CloseReception(ctx context.Context, receptionID string) (*model.Reception, error) {
+	query, args, err := r.psql.
+		Update(receptionTableName).
+		Set("status", "close").
+		Where(sq.Eq{"id": receptionID, "status": "in_progress"}).
+		Suffix("RETURNING id, date_time, pvz_id, status").
+		ToSql()
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to build sql query: %w", err)
+	}
+
+	var reception model.Reception
+	err = r.db.QueryRowContext(ctx, query, args...).Scan(&reception.ID, &reception.DateTime, &reception.PVZID, &reception.Status)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("reception not found or already closed")
+		}
+		return nil, fmt.Errorf("failed to close reception: %w", err)
 	}
 
 	return &reception, nil

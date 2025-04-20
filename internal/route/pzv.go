@@ -15,5 +15,7 @@ func SetupPVZRoutes(router *gin.Engine, handler *handler.Handler, jwtSecret stri
 		pvzGroup.POST("", middleware.RoleMiddleware(model.ModeratorRole), handler.PVZHandler.CreatePVZ)
 
 		pvzGroup.POST("/:pvzId/delete_last_product", middleware.RoleMiddleware(model.EmployeeRole), handler.ProductHandler.DeleteLastProduct)
+
+		pvzGroup.POST("/:pvzId/close_last_reception", middleware.RoleMiddleware(model.EmployeeRole), handler.ReceptionHandler.CloseLastReception)
 	}
 }

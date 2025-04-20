@@ -34,3 +34,19 @@ func (h *ReceptionHandler) CreateReception(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, reception)
 }
+
+func (h *ReceptionHandler) CloseLastReception(c *gin.Context) {
+	pvzID := c.Param("pvzId")
+	if pvzID == "" {
+		c.JSON(http.StatusBadRequest, model.Error{Message: "PVZ ID is required"})
+		return
+	}
+
+	closedReception, err := h.receptionService.CloseLastReception(c.Request.Context(), pvzID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.Error{Message: err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, closedReception)
+}

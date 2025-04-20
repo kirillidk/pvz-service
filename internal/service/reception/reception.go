@@ -27,3 +27,17 @@ func (s *ReceptionService) CreateReception(ctx context.Context, receptionCreateR
 
 	return reception, nil
 }
+
+func (s *ReceptionService) CloseLastReception(ctx context.Context, pvzID string) (*model.Reception, error) {
+	reception, err := s.receptionRepository.GetLastOpenReception(ctx, pvzID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find open reception: %w", err)
+	}
+
+	closedReception, err := s.receptionRepository.CloseReception(ctx, reception.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to close reception: %w", err)
+	}
+
+	return closedReception, nil
+}

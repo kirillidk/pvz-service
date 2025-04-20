@@ -16,6 +16,7 @@ type MockReceptionRepository struct {
 	CreateReceptionFunc      func(ctx context.Context, req dto.ReceptionCreateRequest) (*model.Reception, error)
 	HasOpenReceptionFunc     func(ctx context.Context, pvzID string) (bool, error)
 	GetLastOpenReceptionFunc func(ctx context.Context, pvzID string) (*model.Reception, error)
+	CloseReceptionFunc       func(ctx context.Context, receptionID string) (*model.Reception, error)
 }
 
 func (m *MockReceptionRepository) CreateReception(ctx context.Context, req dto.ReceptionCreateRequest) (*model.Reception, error) {
@@ -28,6 +29,10 @@ func (m *MockReceptionRepository) HasOpenReception(ctx context.Context, pvzID st
 
 func (m *MockReceptionRepository) GetLastOpenReception(ctx context.Context, pvzID string) (*model.Reception, error) {
 	return m.GetLastOpenReceptionFunc(ctx, pvzID)
+}
+
+func (m *MockReceptionRepository) CloseReception(ctx context.Context, pvzID string) (*model.Reception, error) {
+	return m.CloseReceptionFunc(ctx, pvzID)
 }
 
 func TestReceptionService_CreateReception(t *testing.T) {
