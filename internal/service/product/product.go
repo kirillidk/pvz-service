@@ -37,3 +37,22 @@ func (s *ProductService) CreateProduct(ctx context.Context, req dto.ProductCreat
 
 	return product, nil
 }
+
+func (s *ProductService) DeleteLastProduct(ctx context.Context, pvzID string) error {
+	reception, err := s.receptionRepository.GetLastOpenReception(ctx, pvzID)
+	if err != nil {
+		return fmt.Errorf("failed to find open reception: %w", err)
+	}
+
+	lastProduct, err := s.productRepository.GetLastProductInReception(ctx, reception.ID)
+	if err != nil {
+		return fmt.Errorf("failed to get last product: %w", err)
+	}
+
+	err = s.productRepository.DeleteProduct(ctx, lastProduct.ID)
+	if err != nil {
+		return fmt.Errorf("failed to delete product: %w", err)
+	}
+
+	return nil
+}

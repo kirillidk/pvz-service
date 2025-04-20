@@ -34,3 +34,19 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, product)
 }
+
+func (h *ProductHandler) DeleteLastProduct(c *gin.Context) {
+	pvzID := c.Param("pvzId")
+	if pvzID == "" {
+		c.JSON(http.StatusBadRequest, model.Error{Message: "PVZ ID is required"})
+		return
+	}
+
+	err := h.productService.DeleteLastProduct(c.Request.Context(), pvzID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.Error{Message: err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Last product deleted successfully"})
+}
