@@ -15,6 +15,11 @@ const (
 	receptionTableName = "receptions"
 )
 
+type ReceptionRepositoryInterface interface {
+	CreateReception(ctx context.Context, receptionCreateReq dto.ReceptionCreateRequest) (*model.Reception, error)
+	HasOpenReception(ctx context.Context, receptionCreateReq dto.ReceptionCreateRequest) (bool, error)
+}
+
 type ReceptionRepository struct {
 	db   *sql.DB
 	psql sq.StatementBuilderType
