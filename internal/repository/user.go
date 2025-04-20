@@ -12,8 +12,14 @@ import (
 )
 
 const (
-	tableName = "users"
+	usertableName = "users"
 )
+
+type UserRepositoryInterface interface {
+	CreateUser(ctx context.Context, registerReq dto.RegisterRequest) (*model.User, error)
+	FindUserByEmail(ctx context.Context, email string) (*model.User, string, error)
+	UserExists(ctx context.Context, email string) (bool, error)
+}
 
 type UserRepository struct {
 	db   *sql.DB
@@ -34,7 +40,7 @@ func (r *UserRepository) CreateUser(ctx context.Context, registerReq dto.Registe
 	}
 
 	query, args, err := r.psql.
-		Insert(tableName).
+		Insert(usertableName).
 		Columns("email", "password_hash", "role").
 		Values(registerReq.Email, string(hashedPassword), registerReq.Role).
 		Suffix("RETURNING id, email, role").
@@ -59,7 +65,7 @@ func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (*mo
 
 	query, args, err := r.psql.
 		Select("id", "email", "password_hash", "role").
-		From(tableName).
+		From(usertableName).
 		Where(sq.Eq{"email": email}).
 		ToSql()
 

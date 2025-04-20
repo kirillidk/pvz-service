@@ -1,4 +1,4 @@
-package service_test
+package reception_test
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 
 	"github.com/kirillidk/pvz-service/internal/dto"
 	"github.com/kirillidk/pvz-service/internal/model"
-	"github.com/kirillidk/pvz-service/internal/service"
+	"github.com/kirillidk/pvz-service/internal/service/reception"
 )
 
 type MockReceptionRepository struct {
@@ -73,17 +73,17 @@ func TestReceptionService_CreateReception(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
+	for ttNum, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := service.NewReceptionService(tt.mockRepo)
+			s := reception.NewReceptionService(tt.mockRepo)
 			got, err := s.CreateReception(context.Background(), tt.input)
 
 			if (err != nil) != tt.expectedError {
-				t.Errorf("ReceptionService.CreateReception() error = %v, expectedError %v", err, tt.expectedError)
+				t.Errorf("Test %v: ReceptionService.CreateReception() error = %v, expectedError %v", ttNum, err, tt.expectedError)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.expected) {
-				t.Errorf("ReceptionService.CreateReception() = %v, expected %v", got, tt.expected)
+				t.Errorf("Test %v: ReceptionService.CreateReception() = %v, expected %v", ttNum, got, tt.expected)
 			}
 		})
 	}

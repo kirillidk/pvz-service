@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/kirillidk/pvz-service/internal/dto"
 	"github.com/kirillidk/pvz-service/internal/model"
-	"github.com/kirillidk/pvz-service/internal/service"
+	service "github.com/kirillidk/pvz-service/internal/service/reception"
 )
 
 type ReceptionHandler struct {

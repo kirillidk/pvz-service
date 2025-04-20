@@ -1,4 +1,4 @@
-package service
+package pvz
 
 import (
 	"context"
@@ -10,10 +10,10 @@ import (
 )
 
 type PVZService struct {
-	pvzRepository *repository.PVZRepository
+	pvzRepository repository.PVZRepositoryInterface
 }
 
-func NewPVZService(pvzRepo *repository.PVZRepository) *PVZService {
+func NewPVZService(pvzRepo repository.PVZRepositoryInterface) *PVZService {
 	return &PVZService{
 		pvzRepository: pvzRepo,
 	}

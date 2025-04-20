@@ -15,6 +15,10 @@ const (
 	pvzTableName = "pvz"
 )
 
+type PVZRepositoryInterface interface {
+	CreatePVZ(ctx context.Context, pvzReq dto.PVZRequest) (*model.PVZ, error)
+}
+
 type PVZRepository struct {
 	db   *sql.DB
 	psql sq.StatementBuilderType
