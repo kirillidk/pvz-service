@@ -15,12 +15,12 @@ import (
 )
 
 type App struct {
-	config     *config.Config
-	router     *gin.Engine
-	database   *sql.DB
-	repository *repository.Repository
-	service    *service.Service
-	handler    *handler.Handler
+	Config     *config.Config
+	Router     *gin.Engine
+	Database   *sql.DB
+	Repository *repository.Repository
+	Service    *service.Service
+	Handler    *handler.Handler
 }
 
 func NewApp(cfg *config.Config) (*App, error) {
@@ -37,18 +37,18 @@ func NewApp(cfg *config.Config) (*App, error) {
 	route.SetupRoutes(rtr, handl, cfg.JWT.JWTSecret)
 
 	return &App{
-		config:     cfg,
-		database:   db,
-		router:     rtr,
-		repository: repo,
-		service:    serv,
-		handler:    handl,
+		Config:     cfg,
+		Database:   db,
+		Router:     rtr,
+		Repository: repo,
+		Service:    serv,
+		Handler:    handl,
 	}, nil
 }
 
 func (a *App) Run() error {
-	serverAddr := fmt.Sprintf(":%s", a.config.Server.Port)
+	serverAddr := fmt.Sprintf(":%s", a.Config.Server.Port)
 	log.Printf("Starting server on %s", serverAddr)
 
-	return a.router.Run(serverAddr)
+	return a.Router.Run(serverAddr)
 }
