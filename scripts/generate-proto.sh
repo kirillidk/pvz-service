@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/sh
 
-if ! command -v protoc &> /dev/null; then
+if ! command -v protoc > /dev/null 2>&1; then
     echo "protoc is not installed"
     exit 1
 fi
