@@ -6,6 +6,7 @@ type Config struct {
 	Server   ServerConfig
 	Database DatabaseConfig
 	JWT      JWTConfig
+	GRPC     GRPCConfig
 }
 
 type ServerConfig struct {
@@ -25,6 +26,10 @@ type JWTConfig struct {
 	JWTSecret string
 }
 
+type GRPCConfig struct {
+	Port string
+}
+
 func NewConfig() *Config {
 	return &Config{
 		Server: ServerConfig{
@@ -40,6 +45,9 @@ func NewConfig() *Config {
 		},
 		JWT: JWTConfig{
 			JWTSecret: os.Getenv("JWT_SECRET"),
+		},
+		GRPC: GRPCConfig{
+			Port: os.Getenv("GRPC_PORT"),
 		},
 	}
 }

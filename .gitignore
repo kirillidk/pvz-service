@@ -24,3 +24,6 @@ go.work.sum
 
 # env file
 .env
+
+# Ignore generated proto Go files
+*.pb.go
