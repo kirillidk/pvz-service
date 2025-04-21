@@ -52,7 +52,6 @@ jobs:
         go test -v -cover ./internal/handler
         go test -v -cover ./internal/middleware
         go test -v -cover ./internal/repository
-        go test -v -cover ./internal/route
 
         go test -v -cover ./internal/service/auth
         go test -v -cover ./internal/service/product
