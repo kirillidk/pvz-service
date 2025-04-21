@@ -16,6 +16,10 @@ import (
 	"github.com/kirillidk/pvz-service/internal/model"
 )
 
+func init() {
+	gin.SetMode(gin.ReleaseMode)
+}
+
 type MockAuthService struct {
 	RegisterFunc func(ctx context.Context, req dto.RegisterRequest) (*model.User, error)
 	LoginFunc    func(ctx context.Context, req dto.LoginRequest) (string, error)

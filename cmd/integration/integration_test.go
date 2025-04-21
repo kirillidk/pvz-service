@@ -10,11 +10,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/kirillidk/pvz-service/internal/app"
 	"github.com/kirillidk/pvz-service/internal/config"
 	"github.com/kirillidk/pvz-service/internal/dto"
 	"github.com/kirillidk/pvz-service/internal/model"
 )
+
+func init() {
+	gin.SetMode(gin.ReleaseMode)
+}
 
 func setupTestEnv(t *testing.T) {
 	t.Setenv("SERVER_PORT", "8080")

@@ -47,6 +47,8 @@ jobs:
 
     - name: Test
       run: |
+        go test -v -cover ./cmd/integration
+
         go test -v -cover ./internal/handler
         go test -v -cover ./internal/middleware
         go test -v -cover ./internal/repository
