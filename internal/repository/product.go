@@ -18,6 +18,7 @@ type ProductRepositoryInterface interface {
 	CreateProduct(ctx context.Context, productType string, receptionID string) (*model.Product, error)
 	GetLastProductInReception(ctx context.Context, receptionID string) (*model.Product, error)
 	DeleteProduct(ctx context.Context, productID string) error
+	GetProductsByReceptionID(ctx context.Context, receptionID string) ([]model.Product, error)
 }
 
 type ProductRepository struct {
@@ -105,4 +106,38 @@ func (r *ProductRepository) DeleteProduct(ctx context.Context, productID string)
 	}
 
 	return nil
+}
+
+func (r *ProductRepository) GetProductsByReceptionID(ctx context.Context, receptionID string) ([]model.Product, error) {
+	query, args, err := r.psql.
+		Select("id", "date_time", "type", "reception_id").
+		From(productTableName).
+		Where(sq.Eq{"reception_id": receptionID}).
+		OrderBy("date_time DESC").
+		ToSql()
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to build sql query: %w", err)
+	}
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query products: %w", err)
+	}
+	defer rows.Close()
+
+	var products []model.Product
+	for rows.Next() {
+		var product model.Product
+		if err := rows.Scan(&product.ID, &product.DateTime, &product.Type, &product.ReceptionID); err != nil {
+			return nil, fmt.Errorf("failed to scan product row: %w", err)
+		}
+		products = append(products, product)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating product rows: %w", err)
+	}
+
+	return products, nil
 }

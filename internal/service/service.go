@@ -18,7 +18,7 @@ type Service struct {
 func NewService(repository *repository.Repository, jwtSecret string) *Service {
 	return &Service{
 		AuthService:      auth.NewAuthService(repository.UserRepository, jwtSecret),
-		PVZService:       pvz.NewPVZService(repository.PVZRepository),
+		PVZService:       pvz.NewPVZService(repository.PVZRepository, repository.ReceptionRepository, repository.ProductRepository),
 		ReceptionService: reception.NewReceptionService(repository.ReceptionRepository),
 		ProductService:   product.NewProductService(repository.ProductRepository, repository.ReceptionRepository),
 	}

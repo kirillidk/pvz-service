@@ -17,6 +17,8 @@ const (
 
 type PVZRepositoryInterface interface {
 	CreatePVZ(ctx context.Context, pvzReq dto.PVZCreateRequest) (*model.PVZ, error)
+	GetPVZList(ctx context.Context, filter dto.PVZFilterQuery) ([]model.PVZ, error)
+	GetPVZByID(ctx context.Context, pvzID string) (*model.PVZ, error)
 }
 
 type PVZRepository struct {
@@ -52,4 +54,79 @@ func (r *PVZRepository) CreatePVZ(ctx context.Context, pvzReq dto.PVZCreateReque
 	}
 
 	return &createdPVZ, nil
+}
+
+func (r *PVZRepository) GetPVZList(ctx context.Context, filter dto.PVZFilterQuery) ([]model.PVZ, error) {
+	queryBuilder := r.psql.
+		Select("p.id", "p.registration_date", "p.city").
+		From(pvzTableName + " p")
+
+	if filter.StartDate != nil || filter.EndDate != nil {
+		queryBuilder = queryBuilder.Join("receptions r ON p.id = r.pvz_id")
+
+		if filter.StartDate != nil {
+			queryBuilder = queryBuilder.Where(sq.GtOrEq{"r.date_time": filter.StartDate})
+		}
+
+		if filter.EndDate != nil {
+			queryBuilder = queryBuilder.Where(sq.LtOrEq{"r.date_time": filter.EndDate})
+		}
+
+		queryBuilder = queryBuilder.GroupBy("p.id")
+	}
+
+	offset := (filter.Page - 1) * filter.Limit
+	queryBuilder = queryBuilder.
+		Offset(uint64(offset)).
+		Limit(uint64(filter.Limit)).
+		OrderBy("p.registration_date DESC")
+
+	query, args, err := queryBuilder.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("failed to build sql query: %w", err)
+	}
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query pvz list: %w", err)
+	}
+	defer rows.Close()
+
+	var pvzList []model.PVZ
+	for rows.Next() {
+		var pvz model.PVZ
+		if err := rows.Scan(&pvz.ID, &pvz.RegistrationDate, &pvz.City); err != nil {
+			return nil, fmt.Errorf("failed to scan pvz row: %w", err)
+		}
+		pvzList = append(pvzList, pvz)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating pvz rows: %w", err)
+	}
+
+	return pvzList, nil
+}
+
+func (r *PVZRepository) GetPVZByID(ctx context.Context, pvzID string) (*model.PVZ, error) {
+	query, args, err := r.psql.
+		Select("id", "registration_date", "city").
+		From(pvzTableName).
+		Where(sq.Eq{"id": pvzID}).
+		ToSql()
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to build sql query: %w", err)
+	}
+
+	var pvz model.PVZ
+	err = r.db.QueryRowContext(ctx, query, args...).Scan(&pvz.ID, &pvz.RegistrationDate, &pvz.City)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("pvz not found")
+		}
+		return nil, fmt.Errorf("failed to get pvz: %w", err)
+	}
+
+	return &pvz, nil
 }

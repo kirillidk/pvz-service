@@ -20,6 +20,7 @@ type ReceptionRepositoryInterface interface {
 	HasOpenReception(ctx context.Context, pvzID string) (bool, error)
 	GetLastOpenReception(ctx context.Context, pvzID string) (*model.Reception, error)
 	CloseReception(ctx context.Context, receptionID string) (*model.Reception, error)
+	GetReceptionsByPVZID(ctx context.Context, pvzID string, startDate, endDate *time.Time) ([]model.Reception, error)
 }
 
 type ReceptionRepository struct {
@@ -131,4 +132,48 @@ func (r *ReceptionRepository) CloseReception(ctx context.Context, receptionID st
 	}
 
 	return &reception, nil
+}
+
+func (r *ReceptionRepository) GetReceptionsByPVZID(ctx context.Context, pvzID string, startDate, endDate *time.Time) ([]model.Reception, error) {
+	queryBuilder := r.psql.
+		Select("id", "date_time", "pvz_id", "status").
+		From(receptionTableName).
+		Where(sq.Eq{"pvz_id": pvzID})
+
+	if startDate != nil {
+		queryBuilder = queryBuilder.Where(sq.GtOrEq{"date_time": startDate})
+	}
+
+	if endDate != nil {
+		queryBuilder = queryBuilder.Where(sq.LtOrEq{"date_time": endDate})
+	}
+
+	query, args, err := queryBuilder.
+		OrderBy("date_time DESC").
+		ToSql()
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to build sql query: %w", err)
+	}
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query receptions: %w", err)
+	}
+	defer rows.Close()
+
+	var receptions []model.Reception
+	for rows.Next() {
+		var reception model.Reception
+		if err := rows.Scan(&reception.ID, &reception.DateTime, &reception.PVZID, &reception.Status); err != nil {
+			return nil, fmt.Errorf("failed to scan reception row: %w", err)
+		}
+		receptions = append(receptions, reception)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating reception rows: %w", err)
+	}
+
+	return receptions, nil
 }

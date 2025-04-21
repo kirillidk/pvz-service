@@ -41,3 +41,19 @@ func (h *PVZHandler) CreatePVZ(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, createdPVZ)
 }
+
+func (h *PVZHandler) GetPVZList(c *gin.Context) {
+	var filter dto.PVZFilterQuery
+	if err := c.ShouldBindQuery(&filter); err != nil {
+		c.JSON(http.StatusBadRequest, model.Error{Message: "Invalid query parameters"})
+		return
+	}
+
+	result, err := h.pvzService.GetPVZList(c.Request.Context(), filter)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.Error{Message: err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
