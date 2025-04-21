@@ -21,3 +21,7 @@ migrate-version:
 
 seed:
 	docker exec -i postgres psql -U postgres -d pvz_service < ./seeds/seed_test_data.sql
+
+run-tests:
+	chmod +x scripts/run-tests.sh
+	scripts/run-tests.sh
