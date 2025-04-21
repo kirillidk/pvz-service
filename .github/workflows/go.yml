@@ -46,7 +46,16 @@ jobs:
       run: go build -v ./...
 
     - name: Test
-      run: go test -v -cover ./...
+      run: |
+        go test -v -cover ./internal/handler
+        go test -v -cover ./internal/middleware
+        go test -v -cover ./internal/repository
+        go test -v -cover ./internal/route
+
+        go test -v -cover ./internal/service/auth
+        go test -v -cover ./internal/service/product
+        go test -v -cover ./internal/service/pvz
+        go test -v -cover ./internal/service/reception
       env:
         DB_HOST: localhost
         DB_PORT: 5432

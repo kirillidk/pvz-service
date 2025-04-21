@@ -177,3 +177,368 @@ func TestPVZService_CreatePVZ(t *testing.T) {
 		})
 	}
 }
+
+func TestPVZService_GetPVZList(t *testing.T) {
+	now := time.Now()
+	startDate := now.Add(-24 * time.Hour)
+	endDate := now
+
+	pvz1 := model.PVZ{
+		ID:               "pvz-id-1",
+		RegistrationDate: now,
+		City:             "Москва",
+	}
+
+	pvz2 := model.PVZ{
+		ID:               "pvz-id-2",
+		RegistrationDate: now.Add(-1 * time.Hour),
+		City:             "Санкт-Петербург",
+	}
+
+	reception1 := model.Reception{
+		ID:       "reception-id-1",
+		DateTime: now.Add(-30 * time.Minute),
+		PVZID:    "pvz-id-1",
+		Status:   "in_progress",
+	}
+
+	reception2 := model.Reception{
+		ID:       "reception-id-2",
+		DateTime: now.Add(-2 * time.Hour),
+		PVZID:    "pvz-id-2",
+		Status:   "close",
+	}
+
+	product1 := model.Product{
+		ID:          "product-id-1",
+		DateTime:    now.Add(-15 * time.Minute),
+		Type:        "type1",
+		ReceptionID: "reception-id-1",
+	}
+
+	product2 := model.Product{
+		ID:          "product-id-2",
+		DateTime:    now.Add(-2 * time.Hour),
+		Type:        "type2",
+		ReceptionID: "reception-id-2",
+	}
+
+	tests := []struct {
+		name          string
+		mockRepos     *MockRepositories
+		filter        dto.PVZFilterQuery
+		expected      *dto.PaginatedResponse
+		expectedError bool
+	}{
+		{
+			name: "Success - With Filters",
+			mockRepos: &MockRepositories{
+				MockPVZRepository: &MockPVZRepository{
+					GetPVZListFunc: func(ctx context.Context, filter dto.PVZFilterQuery) ([]model.PVZ, error) {
+						return []model.PVZ{pvz1, pvz2}, nil
+					},
+				},
+				MockReceptionRepository: &MockReceptionRepository{
+					GetReceptionsByPVZIDFunc: func(ctx context.Context, pvzID string, startDate, endDate *time.Time) ([]model.Reception, error) {
+						if pvzID == "pvz-id-1" {
+							return []model.Reception{reception1}, nil
+						}
+						return []model.Reception{reception2}, nil
+					},
+				},
+				MockProductRepository: &MockProductRepository{
+					GetProductsByReceptionIDFunc: func(ctx context.Context, receptionID string) ([]model.Product, error) {
+						if receptionID == "reception-id-1" {
+							return []model.Product{product1}, nil
+						}
+						return []model.Product{product2}, nil
+					},
+				},
+			},
+			filter: dto.PVZFilterQuery{
+				Page:      1,
+				Limit:     10,
+				StartDate: &startDate,
+				EndDate:   &endDate,
+			},
+			expected: &dto.PaginatedResponse{
+				Data: []dto.PVZWithReceptionsResponse{
+					{
+						PVZ: pvz1,
+						Receptions: []dto.ReceptionWithProductsResponse{
+							{
+								Reception: reception1,
+								Products:  []model.Product{product1},
+							},
+						},
+					},
+					{
+						PVZ: pvz2,
+						Receptions: []dto.ReceptionWithProductsResponse{
+							{
+								Reception: reception2,
+								Products:  []model.Product{product2},
+							},
+						},
+					},
+				},
+			},
+			expectedError: false,
+		},
+		{
+			name: "Success - No Filters",
+			mockRepos: &MockRepositories{
+				MockPVZRepository: &MockPVZRepository{
+					GetPVZListFunc: func(ctx context.Context, filter dto.PVZFilterQuery) ([]model.PVZ, error) {
+						return []model.PVZ{pvz1}, nil
+					},
+				},
+				MockReceptionRepository: &MockReceptionRepository{
+					GetReceptionsByPVZIDFunc: func(ctx context.Context, pvzID string, startDate, endDate *time.Time) ([]model.Reception, error) {
+						return []model.Reception{reception1}, nil
+					},
+				},
+				MockProductRepository: &MockProductRepository{
+					GetProductsByReceptionIDFunc: func(ctx context.Context, receptionID string) ([]model.Product, error) {
+						return []model.Product{product1}, nil
+					},
+				},
+			},
+			filter: dto.PVZFilterQuery{
+				Page:  1,
+				Limit: 10,
+			},
+			expected: &dto.PaginatedResponse{
+				Data: []dto.PVZWithReceptionsResponse{
+					{
+						PVZ: pvz1,
+						Receptions: []dto.ReceptionWithProductsResponse{
+							{
+								Reception: reception1,
+								Products:  []model.Product{product1},
+							},
+						},
+					},
+				},
+			},
+			expectedError: false,
+		},
+		{
+			name: "Empty PVZ List",
+			mockRepos: &MockRepositories{
+				MockPVZRepository: &MockPVZRepository{
+					GetPVZListFunc: func(ctx context.Context, filter dto.PVZFilterQuery) ([]model.PVZ, error) {
+						return []model.PVZ{}, nil
+					},
+				},
+				MockReceptionRepository: &MockReceptionRepository{},
+				MockProductRepository:   &MockProductRepository{},
+			},
+			filter: dto.PVZFilterQuery{
+				Page:  1,
+				Limit: 10,
+			},
+			expected: &dto.PaginatedResponse{
+				Data: []dto.PVZWithReceptionsResponse{},
+			},
+			expectedError: false,
+		},
+		{
+			name: "PVZ Repository Error",
+			mockRepos: &MockRepositories{
+				MockPVZRepository: &MockPVZRepository{
+					GetPVZListFunc: func(ctx context.Context, filter dto.PVZFilterQuery) ([]model.PVZ, error) {
+						return nil, errors.New("pvz repository error")
+					},
+				},
+				MockReceptionRepository: &MockReceptionRepository{},
+				MockProductRepository:   &MockProductRepository{},
+			},
+			filter: dto.PVZFilterQuery{
+				Page:  1,
+				Limit: 10,
+			},
+			expected:      nil,
+			expectedError: true,
+		},
+		{
+			name: "Reception Repository Error",
+			mockRepos: &MockRepositories{
+				MockPVZRepository: &MockPVZRepository{
+					GetPVZListFunc: func(ctx context.Context, filter dto.PVZFilterQuery) ([]model.PVZ, error) {
+						return []model.PVZ{pvz1}, nil
+					},
+				},
+				MockReceptionRepository: &MockReceptionRepository{
+					GetReceptionsByPVZIDFunc: func(ctx context.Context, pvzID string, startDate, endDate *time.Time) ([]model.Reception, error) {
+						return nil, errors.New("reception repository error")
+					},
+				},
+				MockProductRepository: &MockProductRepository{},
+			},
+			filter: dto.PVZFilterQuery{
+				Page:  1,
+				Limit: 10,
+			},
+			expected:      nil,
+			expectedError: true,
+		},
+		{
+			name: "Product Repository Error",
+			mockRepos: &MockRepositories{
+				MockPVZRepository: &MockPVZRepository{
+					GetPVZListFunc: func(ctx context.Context, filter dto.PVZFilterQuery) ([]model.PVZ, error) {
+						return []model.PVZ{pvz1}, nil
+					},
+				},
+				MockReceptionRepository: &MockReceptionRepository{
+					GetReceptionsByPVZIDFunc: func(ctx context.Context, pvzID string, startDate, endDate *time.Time) ([]model.Reception, error) {
+						return []model.Reception{reception1}, nil
+					},
+				},
+				MockProductRepository: &MockProductRepository{
+					GetProductsByReceptionIDFunc: func(ctx context.Context, receptionID string) ([]model.Product, error) {
+						return nil, errors.New("product repository error")
+					},
+				},
+			},
+			filter: dto.PVZFilterQuery{
+				Page:  1,
+				Limit: 10,
+			},
+			expected:      nil,
+			expectedError: true,
+		},
+		{
+			name: "PVZ With No Receptions",
+			mockRepos: &MockRepositories{
+				MockPVZRepository: &MockPVZRepository{
+					GetPVZListFunc: func(ctx context.Context, filter dto.PVZFilterQuery) ([]model.PVZ, error) {
+						return []model.PVZ{pvz1}, nil
+					},
+				},
+				MockReceptionRepository: &MockReceptionRepository{
+					GetReceptionsByPVZIDFunc: func(ctx context.Context, pvzID string, startDate, endDate *time.Time) ([]model.Reception, error) {
+						return []model.Reception{}, nil
+					},
+				},
+				MockProductRepository: &MockProductRepository{},
+			},
+			filter: dto.PVZFilterQuery{
+				Page:  1,
+				Limit: 10,
+			},
+			expected: &dto.PaginatedResponse{
+				Data: []dto.PVZWithReceptionsResponse{
+					{
+						PVZ:        pvz1,
+						Receptions: []dto.ReceptionWithProductsResponse{},
+					},
+				},
+			},
+			expectedError: false,
+		},
+		{
+			name: "Reception With No Products",
+			mockRepos: &MockRepositories{
+				MockPVZRepository: &MockPVZRepository{
+					GetPVZListFunc: func(ctx context.Context, filter dto.PVZFilterQuery) ([]model.PVZ, error) {
+						return []model.PVZ{pvz1}, nil
+					},
+				},
+				MockReceptionRepository: &MockReceptionRepository{
+					GetReceptionsByPVZIDFunc: func(ctx context.Context, pvzID string, startDate, endDate *time.Time) ([]model.Reception, error) {
+						return []model.Reception{reception1}, nil
+					},
+				},
+				MockProductRepository: &MockProductRepository{
+					GetProductsByReceptionIDFunc: func(ctx context.Context, receptionID string) ([]model.Product, error) {
+						return []model.Product{}, nil
+					},
+				},
+			},
+			filter: dto.PVZFilterQuery{
+				Page:  1,
+				Limit: 10,
+			},
+			expected: &dto.PaginatedResponse{
+				Data: []dto.PVZWithReceptionsResponse{
+					{
+						PVZ: pvz1,
+						Receptions: []dto.ReceptionWithProductsResponse{
+							{
+								Reception: reception1,
+								Products:  []model.Product{},
+							},
+						},
+					},
+				},
+			},
+			expectedError: false,
+		},
+		{
+			name: "Pagination Test",
+			mockRepos: &MockRepositories{
+				MockPVZRepository: &MockPVZRepository{
+					GetPVZListFunc: func(ctx context.Context, filter dto.PVZFilterQuery) ([]model.PVZ, error) {
+						// Verify pagination parameters are passed correctly
+						if filter.Page != 2 || filter.Limit != 5 {
+							t.Errorf("Expected page 2, limit 5, got page %d, limit %d", filter.Page, filter.Limit)
+						}
+						return []model.PVZ{pvz2}, nil
+					},
+				},
+				MockReceptionRepository: &MockReceptionRepository{
+					GetReceptionsByPVZIDFunc: func(ctx context.Context, pvzID string, startDate, endDate *time.Time) ([]model.Reception, error) {
+						return []model.Reception{reception2}, nil
+					},
+				},
+				MockProductRepository: &MockProductRepository{
+					GetProductsByReceptionIDFunc: func(ctx context.Context, receptionID string) ([]model.Product, error) {
+						return []model.Product{product2}, nil
+					},
+				},
+			},
+			filter: dto.PVZFilterQuery{
+				Page:  2,
+				Limit: 5,
+			},
+			expected: &dto.PaginatedResponse{
+				Data: []dto.PVZWithReceptionsResponse{
+					{
+						PVZ: pvz2,
+						Receptions: []dto.ReceptionWithProductsResponse{
+							{
+								Reception: reception2,
+								Products:  []model.Product{product2},
+							},
+						},
+					},
+				},
+			},
+			expectedError: false,
+		},
+	}
+
+	for ttNum, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := service.NewPVZService(
+				tt.mockRepos.MockPVZRepository,
+				tt.mockRepos.MockReceptionRepository,
+				tt.mockRepos.MockProductRepository,
+			)
+			got, err := s.GetPVZList(context.Background(), tt.filter)
+
+			if (err != nil) != tt.expectedError {
+				t.Errorf("Test %v: PVZService.GetPVZList() error = %v, expectedError %v", ttNum, err, tt.expectedError)
+				return
+			}
+
+			if !tt.expectedError {
+				if !reflect.DeepEqual(got, tt.expected) {
+					t.Errorf("Test %v: PVZService.GetPVZList() = %v, expected %v", ttNum, got, tt.expected)
+				}
+			}
+		})
+	}
+}

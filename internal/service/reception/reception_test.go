@@ -103,3 +103,90 @@ func TestReceptionService_CreateReception(t *testing.T) {
 		})
 	}
 }
+
+func TestReceptionService_CloseLastReception(t *testing.T) {
+	now := time.Now()
+
+	tests := []struct {
+		name          string
+		mockRepo      *MockReceptionRepository
+		pvzID         string
+		expected      *model.Reception
+		expectedError bool
+	}{
+		{
+			name: "Success",
+			mockRepo: &MockReceptionRepository{
+				GetLastOpenReceptionFunc: func(ctx context.Context, pvzID string) (*model.Reception, error) {
+					return &model.Reception{
+						ID:       "123e4567-e89b-12d3-a456-426614174000",
+						DateTime: now,
+						PVZID:    pvzID,
+						Status:   "in_progress",
+					}, nil
+				},
+				CloseReceptionFunc: func(ctx context.Context, receptionID string) (*model.Reception, error) {
+					return &model.Reception{
+						ID:       receptionID,
+						DateTime: now,
+						PVZID:    "123e4567-e89b-12d3-a456-426614174000",
+						Status:   "close",
+					}, nil
+				},
+			},
+			pvzID: "123e4567-e89b-12d3-a456-426614174000",
+			expected: &model.Reception{
+				ID:       "123e4567-e89b-12d3-a456-426614174000",
+				DateTime: now,
+				PVZID:    "123e4567-e89b-12d3-a456-426614174000",
+				Status:   "close",
+			},
+			expectedError: false,
+		},
+		{
+			name: "No Open Reception",
+			mockRepo: &MockReceptionRepository{
+				GetLastOpenReceptionFunc: func(ctx context.Context, pvzID string) (*model.Reception, error) {
+					return nil, errors.New("no open reception found for this PVZ")
+				},
+			},
+			pvzID:         "123e4567-e89b-12d3-a456-426614174000",
+			expected:      nil,
+			expectedError: true,
+		},
+		{
+			name: "Close Reception Error",
+			mockRepo: &MockReceptionRepository{
+				GetLastOpenReceptionFunc: func(ctx context.Context, pvzID string) (*model.Reception, error) {
+					return &model.Reception{
+						ID:       "123e4567-e89b-12d3-a456-426614174000",
+						DateTime: now,
+						PVZID:    pvzID,
+						Status:   "in_progress",
+					}, nil
+				},
+				CloseReceptionFunc: func(ctx context.Context, receptionID string) (*model.Reception, error) {
+					return nil, errors.New("failed to close reception")
+				},
+			},
+			pvzID:         "123e4567-e89b-12d3-a456-426614174000",
+			expected:      nil,
+			expectedError: true,
+		},
+	}
+
+	for ttNum, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := reception.NewReceptionService(tt.mockRepo)
+			got, err := s.CloseLastReception(context.Background(), tt.pvzID)
+
+			if (err != nil) != tt.expectedError {
+				t.Errorf("Test %v: ReceptionService.CloseLastReception() error = %v, expectedError %v", ttNum, err, tt.expectedError)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.expected) {
+				t.Errorf("Test %v: ReceptionService.CloseLastReception() = %v, expected %v", ttNum, got, tt.expected)
+			}
+		})
+	}
+}
