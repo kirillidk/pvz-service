@@ -9,6 +9,11 @@ import (
 	"github.com/kirillidk/pvz-service/internal/repository"
 )
 
+type ProductServiceInterface interface {
+	CreateProduct(ctx context.Context, req dto.ProductCreateRequest) (*model.Product, error)
+	DeleteLastProduct(ctx context.Context, pvzID string) error
+}
+
 type ProductService struct {
 	productRepository   repository.ProductRepositoryInterface
 	receptionRepository repository.ReceptionRepositoryInterface

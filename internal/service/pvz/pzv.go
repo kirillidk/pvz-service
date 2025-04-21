@@ -9,6 +9,11 @@ import (
 	"github.com/kirillidk/pvz-service/internal/repository"
 )
 
+type PVZServiceInterface interface {
+	CreatePVZ(ctx context.Context, pvzReq dto.PVZCreateRequest) (*model.PVZ, error)
+	GetPVZList(ctx context.Context, filter dto.PVZFilterQuery) (*dto.PaginatedResponse, error)
+}
+
 type PVZService struct {
 	pvzRepository       repository.PVZRepositoryInterface
 	receptionRepository repository.ReceptionRepositoryInterface

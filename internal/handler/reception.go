@@ -10,10 +10,10 @@ import (
 )
 
 type ReceptionHandler struct {
-	receptionService *service.ReceptionService
+	receptionService service.ReceptionServiceInterface
 }
 
-func NewReceptionHandler(receptionService *service.ReceptionService) *ReceptionHandler {
+func NewReceptionHandler(receptionService service.ReceptionServiceInterface) *ReceptionHandler {
 	return &ReceptionHandler{
 		receptionService: receptionService,
 	}

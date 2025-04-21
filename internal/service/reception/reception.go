@@ -9,6 +9,11 @@ import (
 	"github.com/kirillidk/pvz-service/internal/repository"
 )
 
+type ReceptionServiceInterface interface {
+	CreateReception(ctx context.Context, receptionCreateReq dto.ReceptionCreateRequest) (*model.Reception, error)
+	CloseLastReception(ctx context.Context, pvzID string) (*model.Reception, error)
+}
+
 type ReceptionService struct {
 	receptionRepository repository.ReceptionRepositoryInterface
 }

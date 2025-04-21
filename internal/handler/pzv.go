@@ -10,10 +10,10 @@ import (
 )
 
 type PVZHandler struct {
-	pvzService *service.PVZService
+	pvzService service.PVZServiceInterface
 }
 
-func NewPVZHandler(pvzService *service.PVZService) *PVZHandler {
+func NewPVZHandler(pvzService service.PVZServiceInterface) *PVZHandler {
 	return &PVZHandler{
 		pvzService: pvzService,
 	}

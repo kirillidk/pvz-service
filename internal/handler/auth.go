@@ -10,11 +10,11 @@ import (
 )
 
 type AuthHandler struct {
-	authService *auth.AuthService
+	authService auth.AuthServiceInterface
 	jwtSecret   string
 }
 
-func NewAuthHandler(authService *auth.AuthService, jwtSecret string) *AuthHandler {
+func NewAuthHandler(authService auth.AuthServiceInterface, jwtSecret string) *AuthHandler {
 	return &AuthHandler{
 		authService: authService,
 		jwtSecret:   jwtSecret,

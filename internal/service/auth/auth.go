@@ -11,6 +11,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type AuthServiceInterface interface {
+	Register(ctx context.Context, registerReq dto.RegisterRequest) (*model.User, error)
+	Login(ctx context.Context, loginReq dto.LoginRequest) (string, error)
+}
+
 type AuthService struct {
 	userRepository repository.UserRepositoryInterface
 	jwtSecret      string
